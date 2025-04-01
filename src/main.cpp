@@ -54,6 +54,7 @@ struct Paddle
 	int paddleWidth;
 	int paddleHeight;
 	int paddleSpeed;
+	int maxPaddleSpeed;
 
 	void Draw();
 	void Update(float deltaTime);
@@ -80,22 +81,25 @@ void Paddle::Update(float deltaTime)
 
 void Paddle::CpuUpdate(float deltaTime, Ball& ball)
 {
-	if (paddlePos.y + paddleHeight / 2 > ball.ballPos.y)
+	if (ball.ballPos.x >= (WINDOWWIDTH - WINDOWWIDTH / 4.f))
 	{
-		paddlePos.y = paddlePos.y - paddleSpeed * deltaTime;
-	}
-	if (paddlePos.y + paddleHeight / 2 < ball.ballPos.y)
-	{
-		paddlePos.y = paddlePos.y + paddleSpeed * deltaTime;
-	}
+		if (paddlePos.y + paddleHeight / 2 > ball.ballPos.y)
+		{
+			paddlePos.y = paddlePos.y - paddleSpeed * deltaTime;
+		}
+		if (paddlePos.y + paddleHeight / 2 < ball.ballPos.y)
+		{
+			paddlePos.y = paddlePos.y + paddleSpeed * deltaTime;
+		}
 
-	if (paddlePos.y <= 0)
-	{
-		paddlePos.y = 0;
-	}
-	if (paddlePos.y + paddleHeight >= WINDOWHEIGHT)
-	{
-		paddlePos.y = WINDOWHEIGHT - paddleHeight;
+		if (paddlePos.y <= 0)
+		{
+			paddlePos.y = 0;
+		}
+		if (paddlePos.y + paddleHeight >= WINDOWHEIGHT)
+		{
+			paddlePos.y = WINDOWHEIGHT - paddleHeight;
+		}
 	}
 
 }
@@ -138,7 +142,10 @@ int main(void)
 	};
 	cpu.paddleWidth = 15;
 	cpu.paddleHeight = 100;
-	cpu.paddleSpeed = 700;
+	cpu.paddleSpeed = 200;
+	cpu.maxPaddleSpeed = 700;
+	float rampingUp = 0;
+	float rampUpDelay = 1200;
 #pragma region imgui
 	rlImGuiSetup(true);
 
@@ -215,7 +222,12 @@ int main(void)
 			player.Update(deltaTime);
 			cpu.CpuUpdate(deltaTime, ball);
 
+			rampUpDelay += deltaTime;
 
+			if (cpu.paddleSpeed <= cpu.maxPaddleSpeed && rampingUp < rampUpDelay)
+			{
+				cpu.paddleSpeed++;
+			}
 
 			bool playerCollided = CheckCollisionCircleRec(
 				ball.ballPos,
